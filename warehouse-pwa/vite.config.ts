@@ -35,21 +35,46 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
+            // Cache product images
             urlPattern: /^https:\/\/.*supabase\.co\/storage/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'product-images',
               expiration: {
-                maxEntries: 100,
+                maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
               }
+            }
+          },
+          {
+            // Cache API responses
+            urlPattern: /^https:\/\/.*supabase\.co\/rest/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 // 1 hour
+              },
+              networkTimeoutSeconds: 5
             }
           }
         ]
       }
     })
-  ]
+  ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          xlsx: ['exceljs'],
+        }
+      }
+    }
+  }
 })

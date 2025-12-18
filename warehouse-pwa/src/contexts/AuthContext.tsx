@@ -32,30 +32,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     if (!supabase) return
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    console.log('AuthContext: Fetching profile for', userId)
 
-    if (error) {
-      console.error('Error fetching profile:', error)
-      setLoading(false)
-      return
+    // Add timeout for profile fetch
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+    })
+
+    try {
+      const result = await Promise.race([
+        supabase.from('users').select('*').eq('id', userId).single(),
+        timeoutPromise
+      ]) as { data: UserProfile | null; error: Error | null }
+
+      if (result.error) {
+        console.error('AuthContext: Error fetching profile:', result.error)
+        setLoading(false)
+        return
+      }
+
+      console.log('AuthContext: Profile fetched', result.data)
+      setProfile(result.data)
+    } catch (err) {
+      console.error('AuthContext: Profile fetch failed:', err)
     }
-
-    setProfile(data)
     setLoading(false)
   }, [])
 
   useEffect(() => {
     if (!supabase) {
+      console.log('AuthContext: Supabase not configured')
       return
     }
+
+    console.log('AuthContext: Getting session...')
+
+    // Add timeout to prevent hanging forever
+    const timeoutId = setTimeout(() => {
+      console.error('AuthContext: Session fetch timed out - check Supabase credentials')
+      setLoading(false)
+    }, 5000)
 
     // Get initial session
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
+        clearTimeout(timeoutId)
+        console.log('AuthContext: Session received', { hasSession: !!session, userId: session?.user?.id })
         setSession(session)
         setUser(session?.user ?? null)
         if (session?.user) {
@@ -65,13 +87,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch((error) => {
-        console.error('Error getting session:', error)
+        clearTimeout(timeoutId)
+        console.error('AuthContext: Error getting session:', error)
         setLoading(false)
       })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        console.log('AuthContext: Auth state changed', { event, hasSession: !!session, userId: session?.user?.id })
         setSession(session)
         setUser(session?.user ?? null)
         if (session?.user) {

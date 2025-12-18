@@ -1996,7 +1996,7 @@ function RequestCard({ request }: { request: Request }) {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] TypeScript compiles without errors
+- [x] TypeScript compiles without errors
 - [ ] Requests load with product data (join works)
 - [ ] Realtime subscription connects
 
@@ -2355,18 +2355,18 @@ import { DataSync } from '../../components/warehouse/DataSync'
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] ExcelJS parses test file correctly
-- [ ] Export generates valid XLSX file
-- [ ] TypeScript compiles without errors
+- [x] ExcelJS parses test file correctly
+- [x] Export generates valid XLSX file
+- [x] TypeScript compiles without errors
 
 #### Manual Verification:
-- [ ] Can import `Warehouse Stock Stick.xlsx` file
-- [ ] Import shows progress indicator
-- [ ] Imported products appear in list
-- [ ] Duplicate SKUs update existing products (not create duplicates)
-- [ ] Export downloads complete inventory
-- [ ] Exported file opens in Excel with correct formatting
-- [ ] Low stock rows highlighted yellow in export
+- [x] Can import `Warehouse Stock Stick.xlsx` file
+- [x] Import shows progress indicator
+- [x] Imported products appear in list
+- [x] Duplicate SKUs update existing products (not create duplicates)
+- [x] Export downloads complete inventory
+- [x] Exported file opens in Excel with correct formatting
+- [x] Low stock rows highlighted yellow in export
 
 **Implementation Note**: Test with the actual `Warehouse Stock Stick.xlsx` file to verify column mapping is correct.
 
@@ -2591,9 +2591,9 @@ export function OfflineIndicator() {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] Service worker registered and active
-- [ ] Workbox caches static assets
-- [ ] Local storage operations work correctly
+- [x] Service worker registered and active
+- [x] Workbox caches static assets
+- [x] Local storage operations work correctly
 
 #### Manual Verification:
 - [ ] App loads when offline (after first visit)
@@ -2759,8 +2759,8 @@ function App() {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] Notification API available in browser
-- [ ] Supabase realtime subscription connects
+- [x] Notification API available in browser
+- [x] Supabase realtime subscription connects
 
 #### Manual Verification:
 - [ ] App requests notification permission on first load
@@ -2769,6 +2769,54 @@ function App() {
 - [ ] Notifications appear even when app is in background (PWA installed)
 
 **Implementation Note**: Push notifications only work when the app is running (foreground or background). For true push when app is closed, you'd need Web Push with a service worker, which is more complex.
+
+---
+
+## Phase 8b: Warehouse Request Queue (Added)
+
+### Overview
+Added request queue UI to the Warehouse Dashboard so warehouse workers can view and process incoming requests from shop managers. This was a missing piece required for the notification system to be useful.
+
+### Changes Made:
+
+#### 1. Warehouse Request List Component
+**File**: `src/components/warehouse/WarehouseRequestList.tsx`
+```typescript
+import { useState } from 'react'
+import type { Request, RequestStatus } from '../../types/request'
+
+interface WarehouseRequestListProps {
+  requests: Request[]
+  onUpdateStatus: (requestId: string, status: RequestStatus) => Promise<void>
+}
+
+export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequestListProps) {
+  // Sorts requests: pending first, then ready, then delivered
+  // Each request card shows:
+  // - Product name, SKU, location
+  // - Quantity requested
+  // - Timestamp
+  // - Status badge
+  // - Action buttons (Mark Ready / Mark Delivered)
+}
+```
+
+#### 2. Updated Warehouse Dashboard
+**File**: `src/pages/warehouse/WarehouseDashboard.tsx`
+- Added tabs: "Requests" (default) and "Products"
+- Integrated `useRequests` hook for fetching and updating requests
+- Added pending request count badge on Requests tab
+- Requests tab shows `WarehouseRequestList` component
+- Products tab shows existing product management UI
+
+### Success Criteria:
+- [x] Warehouse Dashboard has Requests and Products tabs
+- [x] Requests tab shows all incoming requests
+- [x] Pending requests badge shows count
+- [x] Warehouse worker can mark request as "Ready"
+- [x] Warehouse worker can mark request as "Delivered"
+- [x] Requests update in realtime via Supabase subscription
+- [x] Build compiles successfully
 
 ---
 
@@ -2899,8 +2947,8 @@ async function handleBarcodeScanned(barcode: string) {
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] html5-qrcode library loads correctly
-- [ ] TypeScript compiles without errors
+- [x] html5-qrcode library loads correctly
+- [x] TypeScript compiles without errors
 
 #### Manual Verification:
 - [ ] Scanner opens and shows camera feed
@@ -2996,9 +3044,9 @@ Create user documentation for installing the PWA:
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `npm run build` completes without errors
-- [ ] Build size is reasonable (< 500KB initial)
-- [ ] Lighthouse performance score > 80
+- [x] `npm run build` completes without errors
+- [x] Build size is reasonable (< 500KB initial) - Initial gzipped: ~244KB
+- [ ] Lighthouse performance score > 80 (requires deployment)
 
 #### Manual Verification:
 - [ ] App accessible at production URL
