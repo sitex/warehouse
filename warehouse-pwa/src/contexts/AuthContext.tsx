@@ -17,6 +17,8 @@ interface AuthContextType {
   loading: boolean
   signInWithEmail: (email: string, password: string) => Promise<void>
   signInWithPin: (pin: string) => Promise<void>
+  sendEmailOtp: (email: string) => Promise<void>
+  verifyEmailOtp: (email: string, token: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -163,6 +165,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }
 
+  async function sendEmailOtp(email: string) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+      },
+    })
+    if (error) throw error
+  }
+
+  async function verifyEmailOtp(email: string, token: string) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    })
+    if (error) throw error
+  }
+
   async function signOut() {
     if (!supabase) {
       throw new Error('Supabase not configured')
@@ -180,6 +209,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signInWithEmail,
       signInWithPin,
+      sendEmailOtp,
+      verifyEmailOtp,
       signOut,
     }}>
       {children}
