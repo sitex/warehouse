@@ -1,12 +1,12 @@
 name: E2E Tests
 
-  on:
+on:
     push:
       branches: [main, master]
     pull_request:
       branches: [main, master]
 
-  jobs:
+jobs:
     test:
       timeout-minutes: 15
       runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ name: E2E Tests
         - uses: actions/setup-node@v4
           with:
             node-version: 20
-            cache: 'npm'
+            cache: npm
             cache-dependency-path: warehouse-pwa/package-lock.json
 
         - name: Install dependencies
