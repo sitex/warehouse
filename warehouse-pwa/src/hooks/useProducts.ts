@@ -18,16 +18,37 @@ export function useProducts() {
     }
 
     setLoading(true)
-    const { data, error } = await client
-      .from('products')
-      .select('*')
-      .order('name')
 
-    if (error) {
-      setError(error.message)
-    } else {
-      setProducts(data || [])
+    // Fetch all products with pagination (Supabase default limit is 1000)
+    let allProducts: Product[] = []
+    let page = 0
+    const pageSize = 1000
+    let hasMore = true
+
+    while (hasMore) {
+      const { data, error: fetchError } = await client
+        .from('products')
+        .select('*')
+        .is('deleted_at', null)
+        .order('name')
+        .range(page * pageSize, (page + 1) * pageSize - 1)
+
+      if (fetchError) {
+        setError(fetchError.message)
+        setLoading(false)
+        return
+      }
+
+      if (data && data.length > 0) {
+        allProducts = [...allProducts, ...(data as Product[])]
+        page++
+        hasMore = data.length === pageSize
+      } else {
+        hasMore = false
+      }
     }
+
+    setProducts(allProducts)
     setLoading(false)
   }, [])
 
@@ -76,8 +97,9 @@ export function useProducts() {
 
     if (error) throw error
 
-    setProducts(prev => [...prev, data])
-    return data
+    const product = data as Product
+    setProducts(prev => [...prev, product])
+    return product
   }
 
   async function updateProduct(id: string, formData: Partial<ProductFormData>, photoFile?: File): Promise<Product> {
@@ -120,8 +142,9 @@ export function useProducts() {
 
     if (error) throw error
 
-    setProducts(prev => prev.map(p => p.id === id ? data : p))
-    return data
+    const updated = data as Product
+    setProducts(prev => prev.map(p => p.id === id ? updated : p))
+    return updated
   }
 
   async function adjustQuantity(productId: string, change: number, note?: string) {
@@ -184,9 +207,10 @@ export function useProducts() {
     const client = supabase
     if (!client) throw new Error('Supabase not configured')
 
+    // Soft delete - set deleted_at timestamp
     const { error } = await client
       .from('products')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() } as Record<string, unknown>)
       .eq('id', id)
 
     if (error) throw error
