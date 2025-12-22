@@ -25,3 +25,8 @@ dev-dist
 *.sln
 *.sw?
 .vercel
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
