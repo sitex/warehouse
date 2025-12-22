@@ -6,6 +6,81 @@ interface WarehouseRequestListProps {
   onUpdateStatus: (requestId: string, status: RequestStatus) => Promise<void>
 }
 
+function printRequests(requests: Request[]) {
+  // Filter to only pending and ready requests for printing
+  const printableRequests = requests.filter(r => r.status === 'pending' || r.status === 'ready')
+
+  if (printableRequests.length === 0) {
+    alert('No pending or ready requests to print')
+    return
+  }
+
+  const printContent = printableRequests.map(request => {
+    const sku = request.product?.sku || 'N/A'
+    const name = request.product?.name || 'Unknown'
+    const amountNeeded = request.quantity_requested
+    const currentStock = request.product?.quantity ?? 0
+    const amountLeft = currentStock - amountNeeded
+    const location = request.product?.location || 'N/A'
+
+    return `${sku} - ${name} - ${amountNeeded} - ${amountLeft} - ${location}`
+  }).join('\n')
+
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) {
+    alert('Please allow popups to print')
+    return
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Requests List</title>
+      <style>
+        body {
+          font-family: monospace;
+          font-size: 14px;
+          padding: 20px;
+          line-height: 1.8;
+        }
+        h1 {
+          font-size: 18px;
+          margin-bottom: 10px;
+        }
+        .header {
+          font-weight: bold;
+          border-bottom: 1px solid #000;
+          padding-bottom: 5px;
+          margin-bottom: 10px;
+        }
+        .row {
+          padding: 4px 0;
+        }
+        @media print {
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Requests - ${new Date().toLocaleDateString()}</h1>
+      <div class="header">SKU - Title - Amount Needed - Amount Left - Location</div>
+      ${printableRequests.map(request => {
+        const sku = request.product?.sku || 'N/A'
+        const name = request.product?.name || 'Unknown'
+        const amountNeeded = request.quantity_requested
+        const currentStock = request.product?.quantity ?? 0
+        const amountLeft = currentStock - amountNeeded
+        const location = request.product?.location || 'N/A'
+        return `<div class="row">${sku} - ${name} - ${amountNeeded} - ${amountLeft} - ${location}</div>`
+      }).join('')}
+    </body>
+    </html>
+  `)
+  printWindow.document.close()
+  printWindow.print()
+}
+
 export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequestListProps) {
   if (requests.length === 0) {
     return (
@@ -21,8 +96,23 @@ export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequ
     return order[a.status] - order[b.status]
   })
 
+  const pendingAndReadyCount = requests.filter(r => r.status === 'pending' || r.status === 'ready').length
+
   return (
     <div className="space-y-4">
+      {pendingAndReadyCount > 0 && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => printRequests(requests)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" />
+            </svg>
+            Print Requests
+          </button>
+        </div>
+      )}
       {sortedRequests.map(request => (
         <RequestCard
           key={request.id}
