@@ -44,36 +44,33 @@ function printRequests(requests: Request[]) {
     return a[0].localeCompare(b[0])
   })
 
-  const generateTable = (reqs: Request[]) => `
-    <table>
-      <thead>
-        <tr>
-          <th class="col-location">Loc</th>
-          <th class="col-sku">SKU</th>
-          <th class="col-title">Title</th>
-          <th class="col-needed">Qty</th>
-          <th class="col-left">Lft</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${reqs.map(request => {
-          const sku = request.product?.sku || 'N/A'
-          const name = request.product?.name || 'Unknown'
-          const amountNeeded = request.quantity_requested
-          const currentStock = request.product?.quantity ?? 0
-          const amountLeft = currentStock - amountNeeded
-          const location = request.product?.location || 'N/A'
-          return `<tr>
-            <td class="col-location">${location}</td>
-            <td class="col-sku">${sku}</td>
-            <td class="col-title">${name}</td>
-            <td class="col-needed num">${amountNeeded}</td>
-            <td class="col-left num">${amountLeft}</td>
-          </tr>`
-        }).join('')}
-      </tbody>
-    </table>
-  `
+  const hasGroups = sortedGroups.some(([name]) => name)
+
+  const generateRows = (reqs: Request[], groupName: string) => {
+    return reqs.map((request, index) => {
+      const sku = request.product?.sku || 'N/A'
+      const name = request.product?.name || 'Unknown'
+      const amountNeeded = request.quantity_requested
+      const currentStock = request.product?.quantity ?? 0
+      const amountLeft = currentStock - amountNeeded
+      const location = request.product?.location || 'N/A'
+      const isFirstInGroup = index === 0
+      let groupCell = ''
+      if (hasGroups && isFirstInGroup) {
+        groupCell = groupName
+          ? `<td class="col-group" rowspan="${reqs.length}">${groupName}</td>`
+          : `<td class="col-group" rowspan="${reqs.length}"></td>`
+      }
+      return `<tr>
+        ${groupCell}
+        <td class="col-location">${location}</td>
+        <td class="col-sku">${sku}</td>
+        <td class="col-title">${name}</td>
+        <td class="col-needed num">${amountNeeded}</td>
+        <td class="col-left num">${amountLeft}</td>
+      </tr>`
+    }).join('')
+  }
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -91,19 +88,9 @@ function printRequests(requests: Request[]) {
           margin-bottom: 20px;
           text-align: center;
         }
-        h2 {
-          font-size: 14px;
-          margin: 20px 0 10px 0;
-          padding: 5px 10px;
-          background-color: #805ad5;
-          color: white;
-          border-radius: 4px;
-        }
         table {
           width: 100%;
           border-collapse: collapse;
-          table-layout: fixed;
-          margin-bottom: 15px;
         }
         th, td {
           border: 1px solid #ccc;
@@ -120,30 +107,51 @@ function printRequests(requests: Request[]) {
           font-size: 11px;
           letter-spacing: 0.5px;
         }
-        tr:nth-child(even) {
-          background-color: #f7fafc;
-        }
         td.num {
           text-align: center;
           font-weight: 600;
         }
-        .col-location { width: 5%; }
-        .col-sku { width: 15%; }
-        .col-title { width: 70%; }
-        .col-needed { width: 5%; }
-        .col-left { width: 5%; }
+        .col-group {
+          width: 20px;
+          min-width: 20px;
+          max-width: 20px;
+          background-color: white;
+          font-weight: 600;
+          font-size: 11px;
+          text-align: center;
+          vertical-align: middle;
+          writing-mode: vertical-rl;
+          text-orientation: mixed;
+          transform: rotate(180deg);
+          white-space: nowrap;
+        }
+        .col-location { width: ${hasGroups ? '5%' : '5%'}; text-align: center; }
+        .col-sku { width: ${hasGroups ? '14%' : '15%'}; }
+        .col-title { width: ${hasGroups ? '63%' : '70%'}; }
+        .col-needed { width: 5%; text-align: center; }
+        .col-left { width: 5%; text-align: center; }
         @media print {
           body { padding: 10px; }
-          h2 { page-break-before: auto; }
         }
       </style>
     </head>
     <body>
-      <h1>Requests - ${new Date().toLocaleDateString()}</h1>
-      ${sortedGroups.map(([groupName, reqs]) => `
-        ${groupName ? `<h2>${groupName}</h2>` : (sortedGroups.length > 1 ? '<h2>No Group</h2>' : '')}
-        ${generateTable(reqs)}
-      `).join('')}
+      <h1>${new Date().toLocaleDateString()}</h1>
+      <table>
+        <thead>
+          <tr>
+            ${hasGroups ? '<th class="col-group"></th>' : ''}
+            <th class="col-location">Loc</th>
+            <th class="col-sku">SKU</th>
+            <th class="col-title">Title</th>
+            <th class="col-needed">Qty</th>
+            <th class="col-left">Lft</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sortedGroups.map(([groupName, reqs]) => generateRows(reqs, groupName)).join('')}
+        </tbody>
+      </table>
     </body>
     </html>
   `)
