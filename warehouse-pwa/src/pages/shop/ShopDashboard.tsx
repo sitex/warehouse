@@ -10,7 +10,7 @@ type Tab = 'catalog' | 'requests'
 
 export function ShopDashboard() {
   const { products, loading: productsLoading, error: productsError } = useProducts()
-  const { requests, loading: requestsLoading, createRequest, error: requestsError } = useRequests()
+  const { requests, loading: requestsLoading, createRequest, deleteRequest, error: requestsError } = useRequests()
   const { profile, signOut } = useAuth()
 
   // Debug logging
@@ -97,7 +97,7 @@ export function ShopDashboard() {
           requestsLoading ? (
             <div className="text-center py-8">Loading requests...</div>
           ) : (
-            <RequestList requests={requests} />
+            <RequestList requests={requests} onDelete={deleteRequest} />
           )
         )}
       </main>

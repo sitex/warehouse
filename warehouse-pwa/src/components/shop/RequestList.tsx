@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import type { Request } from '../../types/request'
 
 interface RequestListProps {
   requests: Request[]
+  onDelete: (requestId: string) => Promise<void>
 }
 
-export function RequestList({ requests }: RequestListProps) {
+export function RequestList({ requests, onDelete }: RequestListProps) {
   if (requests.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -16,13 +18,30 @@ export function RequestList({ requests }: RequestListProps) {
   return (
     <div className="space-y-4">
       {requests.map(request => (
-        <RequestCard key={request.id} request={request} />
+        <RequestCard key={request.id} request={request} onDelete={onDelete} />
       ))}
     </div>
   )
 }
 
-function RequestCard({ request }: { request: Request }) {
+interface RequestCardProps {
+  request: Request
+  onDelete: (requestId: string) => Promise<void>
+}
+
+function RequestCard({ request, onDelete }: RequestCardProps) {
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!confirm('Delete this request?')) return
+    setDeleting(true)
+    try {
+      await onDelete(request.id)
+    } catch (err) {
+      console.error('Failed to delete:', err)
+    }
+    setDeleting(false)
+  }
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
     ready: 'bg-blue-100 text-blue-800',
@@ -57,9 +76,19 @@ function RequestCard({ request }: { request: Request }) {
             </p>
           </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm ${statusColors[request.status]}`}>
-          {statusLabels[request.status]}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`px-3 py-1 rounded-full text-sm ${statusColors[request.status]}`}>
+            {statusLabels[request.status]}
+          </span>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="px-2 py-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50 transition-colors"
+            title="Delete request"
+          >
+            {deleting ? '...' : '✕'}
+          </button>
+        </div>
       </div>
     </div>
   )
