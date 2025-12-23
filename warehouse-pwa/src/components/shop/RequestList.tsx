@@ -47,6 +47,7 @@ function RequestCard({ request }: { request: Request }) {
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-semibold">{request.product?.name || 'Unknown Product'}</h3>
+          <p className="text-sm text-gray-600">SKU: {request.product?.sku || 'N/A'}</p>
           <p className="text-sm text-gray-600">
             Quantity: {request.quantity_requested}
           </p>

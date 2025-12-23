@@ -6,6 +6,20 @@ interface WarehouseRequestListProps {
   onUpdateStatus: (requestId: string, status: RequestStatus) => Promise<void>
 }
 
+function groupRequestsByName(requests: Request[]): Map<string, Request[]> {
+  const groups = new Map<string, Request[]>()
+
+  requests.forEach(request => {
+    const groupName = request.group_name || ''
+    if (!groups.has(groupName)) {
+      groups.set(groupName, [])
+    }
+    groups.get(groupName)!.push(request)
+  })
+
+  return groups
+}
+
 function printRequests(requests: Request[]) {
   // Filter to only pending and ready requests for printing
   const printableRequests = requests.filter(r => r.status === 'pending' || r.status === 'ready')
@@ -20,6 +34,46 @@ function printRequests(requests: Request[]) {
     alert('Please allow popups to print')
     return
   }
+
+  // Group requests by group_name
+  const grouped = groupRequestsByName(printableRequests)
+  const sortedGroups = Array.from(grouped.entries()).sort((a, b) => {
+    // Empty group name goes last
+    if (!a[0] && b[0]) return 1
+    if (a[0] && !b[0]) return -1
+    return a[0].localeCompare(b[0])
+  })
+
+  const generateTable = (reqs: Request[]) => `
+    <table>
+      <thead>
+        <tr>
+          <th class="col-location">Loc</th>
+          <th class="col-sku">SKU</th>
+          <th class="col-title">Title</th>
+          <th class="col-needed">Qty</th>
+          <th class="col-left">Lft</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${reqs.map(request => {
+          const sku = request.product?.sku || 'N/A'
+          const name = request.product?.name || 'Unknown'
+          const amountNeeded = request.quantity_requested
+          const currentStock = request.product?.quantity ?? 0
+          const amountLeft = currentStock - amountNeeded
+          const location = request.product?.location || 'N/A'
+          return `<tr>
+            <td class="col-location">${location}</td>
+            <td class="col-sku">${sku}</td>
+            <td class="col-title">${name}</td>
+            <td class="col-needed num">${amountNeeded}</td>
+            <td class="col-left num">${amountLeft}</td>
+          </tr>`
+        }).join('')}
+      </tbody>
+    </table>
+  `
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -37,10 +91,19 @@ function printRequests(requests: Request[]) {
           margin-bottom: 20px;
           text-align: center;
         }
+        h2 {
+          font-size: 14px;
+          margin: 20px 0 10px 0;
+          padding: 5px 10px;
+          background-color: #805ad5;
+          color: white;
+          border-radius: 4px;
+        }
         table {
           width: 100%;
           border-collapse: collapse;
           table-layout: fixed;
+          margin-bottom: 15px;
         }
         th, td {
           border: 1px solid #ccc;
@@ -60,9 +123,6 @@ function printRequests(requests: Request[]) {
         tr:nth-child(even) {
           background-color: #f7fafc;
         }
-        tr:hover {
-          background-color: #edf2f7;
-        }
         td.num {
           text-align: center;
           font-weight: 600;
@@ -74,40 +134,16 @@ function printRequests(requests: Request[]) {
         .col-left { width: 5%; }
         @media print {
           body { padding: 10px; }
-          tr:hover { background-color: inherit; }
+          h2 { page-break-before: auto; }
         }
       </style>
     </head>
     <body>
       <h1>Requests - ${new Date().toLocaleDateString()}</h1>
-      <table>
-        <thead>
-          <tr>
-            <th class="col-location">Loc</th>
-            <th class="col-sku">SKU</th>
-            <th class="col-title">Title</th>
-            <th class="col-needed">Qty</th>
-            <th class="col-left">Lft</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${printableRequests.map(request => {
-            const sku = request.product?.sku || 'N/A'
-            const name = request.product?.name || 'Unknown'
-            const amountNeeded = request.quantity_requested
-            const currentStock = request.product?.quantity ?? 0
-            const amountLeft = currentStock - amountNeeded
-            const location = request.product?.location || 'N/A'
-            return `<tr>
-              <td class="col-location">${location}</td>
-              <td class="col-sku">${sku}</td>
-              <td class="col-title">${name}</td>
-              <td class="col-needed num">${amountNeeded}</td>
-              <td class="col-left num">${amountLeft}</td>
-            </tr>`
-          }).join('')}
-        </tbody>
-      </table>
+      ${sortedGroups.map(([groupName, reqs]) => `
+        ${groupName ? `<h2>${groupName}</h2>` : (sortedGroups.length > 1 ? '<h2>No Group</h2>' : '')}
+        ${generateTable(reqs)}
+      `).join('')}
     </body>
     </html>
   `)
@@ -130,6 +166,14 @@ export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequ
     return order[a.status] - order[b.status]
   })
 
+  // Group by group_name
+  const grouped = groupRequestsByName(sortedRequests)
+  const sortedGroups = Array.from(grouped.entries()).sort((a, b) => {
+    if (!a[0] && b[0]) return 1
+    if (a[0] && !b[0]) return -1
+    return a[0].localeCompare(b[0])
+  })
+
   const pendingAndReadyCount = requests.filter(r => r.status === 'pending' || r.status === 'ready').length
 
   return (
@@ -147,12 +191,24 @@ export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequ
           </button>
         </div>
       )}
-      {sortedRequests.map(request => (
-        <RequestCard
-          key={request.id}
-          request={request}
-          onUpdateStatus={onUpdateStatus}
-        />
+      {sortedGroups.map(([groupName, groupRequests]) => (
+        <div key={groupName || '_ungrouped'}>
+          {groupName && (
+            <div className="bg-purple-600 text-white px-3 py-2 rounded-t-lg font-medium text-sm">
+              {groupName}
+            </div>
+          )}
+          <div className={`space-y-2 ${groupName ? 'bg-purple-50 p-2 rounded-b-lg mb-4' : ''}`}>
+            {groupRequests.map(request => (
+              <RequestCard
+                key={request.id}
+                request={request}
+                onUpdateStatus={onUpdateStatus}
+                showGroup={false}
+              />
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   )
@@ -161,9 +217,10 @@ export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequ
 interface RequestCardProps {
   request: Request
   onUpdateStatus: (requestId: string, status: RequestStatus) => Promise<void>
+  showGroup?: boolean
 }
 
-function RequestCard({ request, onUpdateStatus }: RequestCardProps) {
+function RequestCard({ request, onUpdateStatus, showGroup = true }: RequestCardProps) {
   const [updating, setUpdating] = useState(false)
 
   const statusColors = {
@@ -190,7 +247,7 @@ function RequestCard({ request, onUpdateStatus }: RequestCardProps) {
 
   return (
     <div className={`bg-white rounded-lg shadow p-4 border-l-4 ${statusColors[request.status]}`}>
-      {request.group_name && (
+      {showGroup && request.group_name && (
         <div className="mb-2 -mt-1">
           <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
             {request.group_name}
