@@ -28,41 +28,86 @@ function printRequests(requests: Request[]) {
       <title>Requests List</title>
       <style>
         body {
-          font-family: monospace;
-          font-size: 14px;
+          font-family: Arial, sans-serif;
+          font-size: 13px;
           padding: 20px;
-          line-height: 1.8;
         }
         h1 {
           font-size: 18px;
-          margin-bottom: 10px;
+          margin-bottom: 20px;
+          text-align: center;
         }
-        .header {
-          font-weight: bold;
-          border-bottom: 1px solid #000;
-          padding-bottom: 5px;
-          margin-bottom: 10px;
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
         }
-        .row {
-          padding: 4px 0;
+        th, td {
+          border: 1px solid #ccc;
+          padding: 4px 6px;
+          text-align: left;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
+        th {
+          background-color: #4a5568;
+          color: white;
+          font-weight: 600;
+          text-transform: uppercase;
+          font-size: 11px;
+          letter-spacing: 0.5px;
+        }
+        tr:nth-child(even) {
+          background-color: #f7fafc;
+        }
+        tr:hover {
+          background-color: #edf2f7;
+        }
+        td.num {
+          text-align: center;
+          font-weight: 600;
+        }
+        .col-location { width: 5%; }
+        .col-sku { width: 15%; }
+        .col-title { width: 70%; }
+        .col-needed { width: 5%; }
+        .col-left { width: 5%; }
         @media print {
-          body { padding: 0; }
+          body { padding: 10px; }
+          tr:hover { background-color: inherit; }
         }
       </style>
     </head>
     <body>
       <h1>Requests - ${new Date().toLocaleDateString()}</h1>
-      <div class="header">SKU - Title - Amount Needed - Amount Left - Location</div>
-      ${printableRequests.map(request => {
-        const sku = request.product?.sku || 'N/A'
-        const name = request.product?.name || 'Unknown'
-        const amountNeeded = request.quantity_requested
-        const currentStock = request.product?.quantity ?? 0
-        const amountLeft = currentStock - amountNeeded
-        const location = request.product?.location || 'N/A'
-        return `<div class="row">${sku} - ${name} - ${amountNeeded} - ${amountLeft} - ${location}</div>`
-      }).join('')}
+      <table>
+        <thead>
+          <tr>
+            <th class="col-location">Loc</th>
+            <th class="col-sku">SKU</th>
+            <th class="col-title">Title</th>
+            <th class="col-needed">Qty</th>
+            <th class="col-left">Lft</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${printableRequests.map(request => {
+            const sku = request.product?.sku || 'N/A'
+            const name = request.product?.name || 'Unknown'
+            const amountNeeded = request.quantity_requested
+            const currentStock = request.product?.quantity ?? 0
+            const amountLeft = currentStock - amountNeeded
+            const location = request.product?.location || 'N/A'
+            return `<tr>
+              <td class="col-location">${location}</td>
+              <td class="col-sku">${sku}</td>
+              <td class="col-title">${name}</td>
+              <td class="col-needed num">${amountNeeded}</td>
+              <td class="col-left num">${amountLeft}</td>
+            </tr>`
+          }).join('')}
+        </tbody>
+      </table>
     </body>
     </html>
   `)
