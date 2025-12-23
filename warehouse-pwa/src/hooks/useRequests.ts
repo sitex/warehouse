@@ -96,12 +96,26 @@ export function useRequests() {
     ))
   }
 
+  async function deleteRequest(requestId: string) {
+    if (!supabase) throw new Error('Supabase not configured')
+
+    const { error } = await supabase
+      .from('requests')
+      .delete()
+      .eq('id', requestId)
+
+    if (error) throw error
+
+    setRequests(requests.filter(r => r.id !== requestId))
+  }
+
   return {
     requests,
     loading,
     error,
     createRequest,
     updateStatus,
+    deleteRequest,
     fetchRequests,
   }
 }

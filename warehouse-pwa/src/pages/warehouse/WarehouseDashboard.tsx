@@ -28,6 +28,7 @@ export function WarehouseDashboard() {
     loading: requestsLoading,
     error: requestsError,
     updateStatus,
+    deleteRequest,
   } = useRequests()
   const { profile, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>('products')
@@ -144,6 +145,7 @@ export function WarehouseDashboard() {
             <WarehouseRequestList
               requests={requests}
               onUpdateStatus={updateStatus}
+              onDelete={deleteRequest}
             />
           )
         )}

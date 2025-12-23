@@ -4,6 +4,7 @@ import type { Request, RequestStatus } from '../../types/request'
 interface WarehouseRequestListProps {
   requests: Request[]
   onUpdateStatus: (requestId: string, status: RequestStatus) => Promise<void>
+  onDelete: (requestId: string) => Promise<void>
 }
 
 function groupRequestsByName(requests: Request[]): Map<string, Request[]> {
@@ -158,7 +159,7 @@ function printRequests(requests: Request[]) {
   printWindow.print()
 }
 
-export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequestListProps) {
+export function WarehouseRequestList({ requests, onUpdateStatus, onDelete }: WarehouseRequestListProps) {
   if (requests.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -211,6 +212,7 @@ export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequ
                 key={request.id}
                 request={request}
                 onUpdateStatus={onUpdateStatus}
+                onDelete={onDelete}
                 showGroup={false}
               />
             ))}
@@ -224,11 +226,13 @@ export function WarehouseRequestList({ requests, onUpdateStatus }: WarehouseRequ
 interface RequestCardProps {
   request: Request
   onUpdateStatus: (requestId: string, status: RequestStatus) => Promise<void>
+  onDelete: (requestId: string) => Promise<void>
   showGroup?: boolean
 }
 
-function RequestCard({ request, onUpdateStatus, showGroup = true }: RequestCardProps) {
+function RequestCard({ request, onUpdateStatus, onDelete, showGroup = true }: RequestCardProps) {
   const [updating, setUpdating] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
@@ -250,6 +254,17 @@ function RequestCard({ request, onUpdateStatus, showGroup = true }: RequestCardP
       console.error('Failed to update status:', err)
     }
     setUpdating(false)
+  }
+
+  async function handleDelete() {
+    if (!confirm('Delete this request?')) return
+    setDeleting(true)
+    try {
+      await onDelete(request.id)
+    } catch (err) {
+      console.error('Failed to delete:', err)
+    }
+    setDeleting(false)
   }
 
   return (
@@ -310,6 +325,14 @@ function RequestCard({ request, onUpdateStatus, showGroup = true }: RequestCardP
               Completed
             </span>
           )}
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
+            title="Delete request"
+          >
+            {deleting ? '...' : '✕'}
+          </button>
         </div>
       </div>
     </div>
