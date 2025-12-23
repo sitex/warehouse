@@ -15,17 +15,6 @@ function printRequests(requests: Request[]) {
     return
   }
 
-  const printContent = printableRequests.map(request => {
-    const sku = request.product?.sku || 'N/A'
-    const name = request.product?.name || 'Unknown'
-    const amountNeeded = request.quantity_requested
-    const currentStock = request.product?.quantity ?? 0
-    const amountLeft = currentStock - amountNeeded
-    const location = request.product?.location || 'N/A'
-
-    return `${sku} - ${name} - ${amountNeeded} - ${amountLeft} - ${location}`
-  }).join('\n')
-
   const printWindow = window.open('', '_blank')
   if (!printWindow) {
     alert('Please allow popups to print')
