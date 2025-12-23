@@ -9,6 +9,7 @@ interface ProductCatalogProps {
 
 export function ProductCatalog({ products, onRequest }: ProductCatalogProps) {
   const [requesting, setRequesting] = useState<string | null>(null)
+  const [groupName, setGroupName] = useState('')
 
   async function handleRequest(product: Product, quantity: number) {
     setRequesting(product.id)
@@ -16,6 +17,7 @@ export function ProductCatalog({ products, onRequest }: ProductCatalogProps) {
       await onRequest({
         product_id: product.id,
         quantity_requested: quantity,
+        group_name: groupName || undefined,
       })
       alert('Request created successfully!')
     } catch (err) {
@@ -33,15 +35,27 @@ export function ProductCatalog({ products, onRequest }: ProductCatalogProps) {
   }
 
   return (
-    <div className="grid gap-4">
-      {products.map(product => (
-        <CatalogItem
-          key={product.id}
-          product={product}
-          onRequest={handleRequest}
-          isRequesting={requesting === product.id}
+    <div className="space-y-4">
+      <div className="bg-white rounded-lg shadow p-3">
+        <label className="block text-sm text-gray-600 mb-1">Group (optional)</label>
+        <input
+          type="text"
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+          placeholder="e.g. Client name, order #..."
+          className="w-full p-2 border rounded text-sm"
         />
-      ))}
+      </div>
+      <div className="grid gap-4">
+        {products.map(product => (
+          <CatalogItem
+            key={product.id}
+            product={product}
+            onRequest={handleRequest}
+            isRequesting={requesting === product.id}
+          />
+        ))}
+      </div>
     </div>
   )
 }

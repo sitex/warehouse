@@ -143,6 +143,7 @@ export interface Database {
           status: 'pending' | 'ready' | 'delivered'
           requested_by: string | null
           handled_by: string | null
+          group_name: string | null
           created_at: string
           updated_at: string
         }
@@ -153,6 +154,7 @@ export interface Database {
           status?: 'pending' | 'ready' | 'delivered'
           requested_by?: string | null
           handled_by?: string | null
+          group_name?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -163,6 +165,7 @@ export interface Database {
           status?: 'pending' | 'ready' | 'delivered'
           requested_by?: string | null
           handled_by?: string | null
+          group_name?: string | null
           created_at?: string
           updated_at?: string
         }

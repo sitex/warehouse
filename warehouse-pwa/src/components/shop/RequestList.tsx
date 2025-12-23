@@ -37,6 +37,13 @@ function RequestCard({ request }: { request: Request }) {
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
+      {request.group_name && (
+        <div className="mb-2">
+          <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+            {request.group_name}
+          </span>
+        </div>
+      )}
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-semibold">{request.product?.name || 'Unknown Product'}</h3>

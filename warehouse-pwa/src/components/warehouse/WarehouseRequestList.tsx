@@ -190,6 +190,13 @@ function RequestCard({ request, onUpdateStatus }: RequestCardProps) {
 
   return (
     <div className={`bg-white rounded-lg shadow p-4 border-l-4 ${statusColors[request.status]}`}>
+      {request.group_name && (
+        <div className="mb-2 -mt-1">
+          <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+            {request.group_name}
+          </span>
+        </div>
+      )}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <h3 className="font-semibold text-lg">{request.product?.name || 'Unknown Product'}</h3>
