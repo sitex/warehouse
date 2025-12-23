@@ -30,7 +30,7 @@ export function WarehouseDashboard() {
     updateStatus,
   } = useRequests()
   const { profile, signOut } = useAuth()
-  const [activeTab, setActiveTab] = useState<Tab>('requests')
+  const [activeTab, setActiveTab] = useState<Tab>('products')
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -99,6 +99,16 @@ export function WarehouseDashboard() {
       {/* Tabs */}
       <div className="flex border-b bg-white sticky top-14 z-30">
         <button
+          onClick={() => setActiveTab('products')}
+          className={`flex-1 py-3 text-center ${
+            activeTab === 'products'
+              ? 'border-b-2 border-green-600 text-green-600 font-medium'
+              : 'text-gray-500'
+          }`}
+        >
+          Products
+        </button>
+        <button
           onClick={() => setActiveTab('requests')}
           className={`flex-1 py-3 text-center relative ${
             activeTab === 'requests'
@@ -112,16 +122,6 @@ export function WarehouseDashboard() {
               {pendingRequests}
             </span>
           )}
-        </button>
-        <button
-          onClick={() => setActiveTab('products')}
-          className={`flex-1 py-3 text-center ${
-            activeTab === 'products'
-              ? 'border-b-2 border-green-600 text-green-600 font-medium'
-              : 'text-gray-500'
-          }`}
-        >
-          Products
         </button>
       </div>
 

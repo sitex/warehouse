@@ -53,7 +53,7 @@ export function ShopDashboard() {
               : 'text-gray-500'
           }`}
         >
-          Catalog
+          Products
         </button>
         <button
           onClick={() => setActiveTab('requests')}
@@ -63,7 +63,7 @@ export function ShopDashboard() {
               : 'text-gray-500'
           }`}
         >
-          My Requests
+          Requests
           {pendingRequests > 0 && (
             <span className="absolute -top-1 right-4 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               {pendingRequests}
