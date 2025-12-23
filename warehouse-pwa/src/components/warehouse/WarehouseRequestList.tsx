@@ -292,13 +292,19 @@ function RequestCard({ request, onUpdateStatus, onDelete, showGroup = true }: Re
       </div>
 
       <div className="flex items-center justify-between border-t pt-3">
-        <div>
-          <p className="text-2xl font-bold text-gray-800">
-            Qty: {request.quantity_requested}
-          </p>
-          <p className="text-xs text-gray-400">
-            {new Date(request.created_at).toLocaleString()}
-          </p>
+        <div className="flex gap-6">
+          <div>
+            <p className="text-2xl font-bold text-gray-800">
+              {request.quantity_requested}
+            </p>
+            <p className="text-xs text-gray-500">Qty</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-800">
+              {(request.product?.quantity ?? 0) - request.quantity_requested}
+            </p>
+            <p className="text-xs text-gray-500">Left</p>
+          </div>
         </div>
 
         <div className="flex gap-2">
