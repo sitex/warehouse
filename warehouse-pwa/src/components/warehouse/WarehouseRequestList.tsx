@@ -112,18 +112,17 @@ function printRequests(requests: Request[]) {
           font-weight: 600;
         }
         .col-group {
-          width: 20px;
-          min-width: 20px;
-          max-width: 20px;
+          width: 1px;
           background-color: white;
           font-weight: 600;
-          font-size: 11px;
+          font-size: 9px;
           text-align: center;
           vertical-align: middle;
           writing-mode: vertical-rl;
           text-orientation: mixed;
           transform: rotate(180deg);
           white-space: nowrap;
+          padding: 0 2px;
         }
         .col-location { width: ${hasGroups ? '5%' : '5%'}; text-align: center; }
         .col-sku { width: ${hasGroups ? '14%' : '15%'}; }
@@ -136,7 +135,7 @@ function printRequests(requests: Request[]) {
       </style>
     </head>
     <body>
-      <h1>${new Date().toLocaleDateString()}</h1>
+      <h1>${new Date().toLocaleDateString().replace(/\//g, ' / ')}</h1>
       <table>
         <thead>
           <tr>
