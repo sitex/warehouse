@@ -48,12 +48,14 @@ function RequestCard({ request }: { request: Request }) {
         <div>
           <h3 className="font-semibold">{request.product?.name || 'Unknown Product'}</h3>
           <p className="text-sm text-gray-600">SKU: {request.product?.sku || 'N/A'}</p>
-          <p className="text-sm text-gray-600">
-            Quantity: {request.quantity_requested}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            {new Date(request.created_at).toLocaleDateString()}
-          </p>
+          <div className="flex gap-4 mt-1">
+            <p className="text-sm text-gray-600">
+              Qty: <span className="font-semibold">{request.quantity_requested}</span>
+            </p>
+            <p className="text-sm text-gray-600">
+              Left: <span className="font-semibold">{(request.product?.quantity ?? 0) - request.quantity_requested}</span>
+            </p>
+          </div>
         </div>
         <span className={`px-3 py-1 rounded-full text-sm ${statusColors[request.status]}`}>
           {statusLabels[request.status]}
